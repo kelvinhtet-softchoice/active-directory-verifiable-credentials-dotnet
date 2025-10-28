@@ -17,19 +17,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # This ensures we get the latest code, including the newly added web.config
+          fetch-depth: 0 
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
+      - name: Restore dependencies
+        # Restore needs to target the project file as well
+        run: dotnet restore "1-asp-net-core-api-idtokenhint/AspNetCoreVerifiableCredentials.csproj"
+
       - name: Build with dotnet
-        # --- FIXED PATH: Points directly to the project file inside the sample directory ---
+        # Path fixed: Points directly to the project file
         run: dotnet build "1-asp-net-core-api-idtokenhint/AspNetCoreVerifiableCredentials.csproj" --configuration Release
 
       - name: dotnet publish
-        # --- FIXED PATH: Publish command also needs the specific project file path ---
-        run: dotnet publish "1-asp-net-core-api-idtokenhint/AspNetCoreVerifiableCredentials.csproj" -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        # Path fixed, and using PublishWithAspNetCoreTarget to include web.config correctly
+        run: dotnet publish "1-asp-net-core-api-idtokenhint/AspNetCoreVerifiableCredentials.csproj" -c Release -o "${{env.DOTNET_ROOT}}/myapp" /p:PublishWithAspNetCoreTarget=false
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
